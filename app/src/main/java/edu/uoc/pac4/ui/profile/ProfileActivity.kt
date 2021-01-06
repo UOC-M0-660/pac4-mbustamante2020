@@ -2,39 +2,39 @@ package edu.uoc.pac4.ui.profile
 
 import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import edu.uoc.pac4.R
-import edu.uoc.pac4.data.network.Network
-import edu.uoc.pac4.ui.login.LoginActivity
 import edu.uoc.pac4.data.SessionManager
-import edu.uoc.pac4.data.TwitchApiService
-import edu.uoc.pac4.data.network.UnauthorizedException
 import edu.uoc.pac4.data.user.User
+import edu.uoc.pac4.ui.login.LoginActivity
+import edu.uoc.pac4.viewmodel.ProfileViewModel
 import kotlinx.android.synthetic.main.activity_profile.*
 import kotlinx.coroutines.launch
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class ProfileActivity : AppCompatActivity() {
 
     private val TAG = "ProfileActivity"
 
-    private val twitchApiService = TwitchApiService(Network.createHttpClient(this))
+    private val profileViewModel: ProfileViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
         // Get User Profile
-        lifecycleScope.launch {
+        //lifecycleScope.launch {
             getUserProfile()
-        }
+        //}
         // Update Description Button Listener
         updateDescriptionButton.setOnClickListener {
             // Hide Keyboard
@@ -52,10 +52,23 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun getUserProfile() {
+    private fun getUserProfile() {
         progressBar.visibility = VISIBLE
+
+        profileViewModel.getUserProfile().observe(this, Observer { user ->
+            user?.let {
+                setUserInfo(user)
+
+            }
+            // Hide Loading
+            progressBar.visibility = GONE
+        })
+
+
+
+
         // Retrieve the Twitch User Profile using the API
-        try {
+       /* try {
             twitchApiService.getUser()?.let { user ->
                 // Success :)
                 // Update the UI with the user data
@@ -68,14 +81,22 @@ class ProfileActivity : AppCompatActivity() {
             progressBar.visibility = GONE
         } catch (t: UnauthorizedException) {
             onUnauthorized()
-        }
+        }*/
     }
 
 
     private suspend fun updateUserDescription(description: String) {
         progressBar.visibility = VISIBLE
+
+        profileViewModel.updateUserDescription(description).observe(this, Observer { user ->
+            user?.let {
+                setUserInfo(user)
+            }
+        })
+
+
         // Update the Twitch User Description using the API
-        try {
+       /* try {
             twitchApiService.updateUserDescription(description)?.let { user ->
                 // Success :)
                 // Update the UI with the user data
@@ -88,7 +109,7 @@ class ProfileActivity : AppCompatActivity() {
             progressBar.visibility = GONE
         } catch (t: UnauthorizedException) {
             onUnauthorized()
-        }
+        }*/
     }
 
     private fun setUserInfo(user: User) {

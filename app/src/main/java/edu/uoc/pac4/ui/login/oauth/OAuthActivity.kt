@@ -1,8 +1,6 @@
 package edu.uoc.pac4.ui.login.oauth
 
-import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,20 +8,18 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
-import androidx.lifecycle.lifecycleScope
-import edu.uoc.pac4.ui.LaunchActivity
+import androidx.appcompat.app.AppCompatActivity
 import edu.uoc.pac4.R
-import edu.uoc.pac4.data.SessionManager
-import edu.uoc.pac4.data.TwitchApiService
 import edu.uoc.pac4.data.network.Endpoints
-import edu.uoc.pac4.data.network.Network
 import edu.uoc.pac4.data.oauth.OAuthConstants
+import edu.uoc.pac4.viewmodel.OAuthViewModel
 import kotlinx.android.synthetic.main.activity_oauth.*
-import kotlinx.coroutines.launch
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class OAuthActivity : AppCompatActivity() {
 
     private val TAG = "StreamsActivity"
+    private val oAuthViewModel: OAuthViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +27,7 @@ class OAuthActivity : AppCompatActivity() {
         launchOAuthAuthorization()
     }
 
-    fun buildOAuthUri(): Uri {
+    private fun buildOAuthUri(): Uri {
         return Uri.parse(Endpoints.authorizationUrl)
             .buildUpon()
             .appendQueryParameter("client_id", OAuthConstants.clientID)
@@ -49,8 +45,8 @@ class OAuthActivity : AppCompatActivity() {
         // Set webView Redirect Listener
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
+                    view: WebView?,
+                    request: WebResourceRequest?
             ): Boolean {
                 request?.let {
                     // Check if this url is our OAuth redirect, otherwise ignore it
@@ -69,9 +65,9 @@ class OAuthActivity : AppCompatActivity() {
                                 // User cancelled the login flow
                                 // Handle error
                                 Toast.makeText(
-                                    this@OAuthActivity,
-                                    getString(R.string.error_oauth),
-                                    Toast.LENGTH_LONG
+                                        this@OAuthActivity,
+                                        getString(R.string.error_oauth),
+                                        Toast.LENGTH_LONG
                                 ).show()
                             }
                         }
@@ -88,10 +84,42 @@ class OAuthActivity : AppCompatActivity() {
     // Call this method after obtaining the authorization code
     // on the WebView to obtain the tokens
     private fun onAuthorizationCodeRetrieved(authorizationCode: String) {
-
         // Show Loading Indicator
+        Log.d(TAG, "onAuthorizationCodeRetrieved")
         progressBar.visibility = View.VISIBLE
 
+        oAuthViewModel.getOAuthTokens(authorizationCode)
+        Log.d(TAG, "oAuthViewModel.getOAuthTokens(authorizationCode)")
+
+        oAuthViewModel.response.observe(this) {response ->
+
+            Log.d(TAG, "Got response $response")
+
+           /* if(response!!) {
+                Log.d(TAG, "Got Access token")
+            } else {
+                Log.d(TAG, "Error Access token")
+                // Show Error Message
+                Toast.makeText(
+                        this@OAuthActivity,
+                        getString(R.string.error_oauth),
+                        Toast.LENGTH_LONG
+                ).show()
+                // Restart Activity
+                finish()
+                startActivity(Intent(this@OAuthActivity, OAuthActivity::class.java))
+            }
+
+            // Hide Loading Indicator
+            progressBar.visibility = View.GONE
+            Log.d(TAG, " startActivity(Intent(")
+            // Restart app to navigate to StreamsActivity
+            startActivity(Intent(this@OAuthActivity, LaunchActivity::class.java))
+            finish()*/
+        }
+    }
+
+        /*
         // Create Twitch Service
         val service = TwitchApiService(Network.createHttpClient(this))
         // Launch new thread attached to this Activity.
@@ -131,5 +159,5 @@ class OAuthActivity : AppCompatActivity() {
             startActivity(Intent(this@OAuthActivity, LaunchActivity::class.java))
             finish()
         }
-    }
+    }*/
 }

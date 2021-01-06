@@ -9,8 +9,11 @@ interface AuthenticationRepository {
     suspend fun isUserAvailable(): Boolean
 
     /// Returns true if the user logged in successfully. False otherwise
-    suspend fun login(authorizationCode: String): Boolean
+    suspend fun login(authorizationCode: String): OAuthTokensResponse?
 
     suspend fun logout()
 
+    fun saveAccessToken(accessToken: String)
+
+    fun saveRefreshToken(refreshToken: String)
 }
