@@ -27,4 +27,3 @@ val dataModule = module {
     // Streams example
     // single<StreamsRepository> { TwitchStreamsRepository() }
 }
-
