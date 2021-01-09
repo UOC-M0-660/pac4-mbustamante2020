@@ -13,7 +13,7 @@ interface AuthenticationRepository {
 
     suspend fun logout()
 
-    fun saveAccessToken(accessToken: String)
+    suspend fun saveAccessToken(accessToken: String)
 
-    fun saveRefreshToken(refreshToken: String)
+    suspend fun saveRefreshToken(refreshToken: String)
 }

@@ -30,11 +30,11 @@ class TwitchDataSource(
         sessionManager?.clearAccessToken()
     }
 
-    fun saveAccessToken(accessToken: String) {
+    suspend fun saveAccessToken(accessToken: String) {
         sessionManager?.saveAccessToken(accessToken)
     }
 
-    fun saveRefreshToken(refreshToken: String) {
+    suspend fun saveRefreshToken(refreshToken: String) {
         sessionManager?.saveRefreshToken(refreshToken)
     }
 

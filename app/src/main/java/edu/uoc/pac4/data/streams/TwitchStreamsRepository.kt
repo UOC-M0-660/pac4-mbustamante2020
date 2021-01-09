@@ -15,5 +15,4 @@ class TwitchStreamsRepository(
         //TODO("Not yet implemented")
         return twitchDataSource.getStreams(cursor)
     }
-
 }

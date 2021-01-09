@@ -25,11 +25,11 @@ class OAuthAuthenticationRepository(
         twitchDataSource.logout()
     }
 
-    override fun saveAccessToken(accessToken: String) {
+    override suspend fun saveAccessToken(accessToken: String) {
         twitchDataSource.saveAccessToken(accessToken)
     }
 
-    override fun saveRefreshToken(refreshToken: String) {
+    override suspend fun saveRefreshToken(refreshToken: String) {
         twitchDataSource.saveRefreshToken(refreshToken)
     }
 }
