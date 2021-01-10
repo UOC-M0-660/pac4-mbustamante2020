@@ -15,8 +15,8 @@ val uiModule = module {
     // TODO: Init your UI Dependencies
     viewModel { LaunchViewModel(repository = get()) }
     viewModel { OAuthViewModel(repository = get()) }
-    viewModel { StreamsViewModel(repository = get()) }
-    viewModel { ProfileViewModel(repository = get()) }
+    viewModel { StreamsViewModel(repository = get(), authenticationRepository = get()) }
+    viewModel { ProfileViewModel(repository = get(), authenticationRepository = get()) }
 
     // LaunchViewModel example
     // viewModel { LaunchViewModel(repository = get()) }

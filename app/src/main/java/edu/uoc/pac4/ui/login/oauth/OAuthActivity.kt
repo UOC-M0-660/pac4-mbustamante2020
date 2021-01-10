@@ -10,7 +10,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import edu.uoc.pac4.R
 import edu.uoc.pac4.data.network.Endpoints
@@ -24,7 +23,7 @@ import org.koin.android.viewmodel.ext.android.viewModel
 
 class OAuthActivity : AppCompatActivity() {
 
-    private val TAG = "OAuthActivity"
+    //private val TAG = "OAuthActivity"
     private val oAuthViewModel: OAuthViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,11 +94,9 @@ class OAuthActivity : AppCompatActivity() {
         lifecycleScope.launch {
 
             oAuthViewModel.getOAuthTokens(authorizationCode)
-            oAuthViewModel.oauthTokens.observe(this@OAuthActivity, Observer {
+            oAuthViewModel.oauthTokens.observe(this@OAuthActivity, {
                 when (it.status) {
                     Status.SUCCESS -> {
-                        Log.d(TAG, "SUCCESS")
-
                         // Hide Loading Indicator
                         progressBar.visibility = View.GONE
 
@@ -112,7 +109,6 @@ class OAuthActivity : AppCompatActivity() {
                     }
                     Status.ERROR -> {
                         //Handle Error
-                        Log.d(TAG, "Error Access token")
                         // Show Error Message
                         Toast.makeText(
                                 this@OAuthActivity,

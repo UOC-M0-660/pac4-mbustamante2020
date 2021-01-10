@@ -1,65 +1,58 @@
 package edu.uoc.pac4.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import edu.uoc.pac4.R
+import edu.uoc.pac4.data.oauth.AuthenticationRepository
 import edu.uoc.pac4.data.user.User
 import edu.uoc.pac4.data.user.UserRepository
+import edu.uoc.pac4.utils.Resource
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
-        private val repository: UserRepository
+        private val repository: UserRepository,
+        private val authenticationRepository: AuthenticationRepository
 ) : ViewModel() {
 
-    val user = MutableLiveData<User?>()
+    private val _user = MutableLiveData<Resource<User?>>()
+    val user: LiveData<Resource<User?>>
+        get() = _user
 
-    fun getUserProfile(): MutableLiveData<User?> {
+    fun getUserProfile() {
         viewModelScope.launch {
-            val user1 = repository.getUser()
-            user.postValue(user1)
+            _user.postValue(Resource.loading(null))
+
+            repository.getUser()?.let { response ->
+                // Success :)
+                _user.postValue(Resource.success(response))
+            } ?: run {
+                // Failure :(
+                _user.postValue(Resource.error(R.string.error_profile.toString(), null))
+            }
         }
-        return user
-
-
-        // Retrieve the Twitch User Profile using the API
-        /* try {
-             twitchApiService.getUser()?.let { user ->
-                 // Success :)
-                 // Update the UI with the user data
-                 setUserInfo(user)
-             } ?: run {
-                 // Error :(
-                 showError(getString(R.string.error_profile))
-             }
-             // Hide Loading
-             progressBar.visibility = GONE
-         } catch (t: UnauthorizedException) {
-             onUnauthorized()
-         }*/
     }
 
+    fun updateUserDescription(description: String) {
+        viewModelScope.launch {
+            _user.postValue(Resource.loading(null))
 
-    suspend fun updateUserDescription(description: String): MutableLiveData<User?> {
-        user.value = repository.updateUser(description)
-        return user
-
-            // Update the Twitch User Description using the API
-        /* try {
-             twitchApiService.updateUserDescription(description)?.let { user ->
-                 // Success :)
-                 // Update the UI with the user data
-                 setUserInfo(user)
-             } ?: run {
-                 // Error :(
-                 showError(getString(R.string.error_profile))
-             }
-             // Hide Loading
-             progressBar.visibility = GONE
-         } catch (t: UnauthorizedException) {
-             onUnauthorized()
-         }*/
+            repository.updateUser(description)?.let { response ->
+                // Success :)
+                _user.postValue(Resource.success(response))
+            } ?: run {
+                // Failure :(
+                _user.postValue(Resource.error(R.string.error_profile.toString(), null))
+            }
+        }
     }
 
+    fun logout() {
+        authenticationRepository.logout()
+    }
 
-
+    fun onUnauthorized() {
+        authenticationRepository.onUnauthorized()
+    }
 }

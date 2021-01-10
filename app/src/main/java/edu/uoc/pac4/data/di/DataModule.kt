@@ -19,11 +19,26 @@ val dataModule = module {
     // TODO: Init your Data Dependencies
     single<AuthenticationRepository> {
         OAuthAuthenticationRepository(
+            TwitchDataSource(Network.createHttpClient(get())),
+            SessionManager(get())
+        ) }
+    single<StreamsRepository> {
+        TwitchStreamsRepository(
+            TwitchDataSource(Network.createHttpClient(get())),
+            SessionManager(get())
+        ) }
+    single<UserRepository> {    TwitchUserRepository(TwitchDataSource(Network.createHttpClient(get()))) }
+
+
+ /*
+ single<AuthenticationRepository> {
+        OAuthAuthenticationRepository(
+            TwitchDataSource(Network.createHttpClient(get()), SessionManager(get())),
             TwitchDataSource(Network.createHttpClient(get()), SessionManager(get()))
         ) }
     single<StreamsRepository> { TwitchStreamsRepository(TwitchDataSource(Network.createHttpClient(get()), null)) }
     single<UserRepository> {    TwitchUserRepository(TwitchDataSource(Network.createHttpClient(get()), null)) }
-
+*/
     // Streams example
     // single<StreamsRepository> { TwitchStreamsRepository() }
 }

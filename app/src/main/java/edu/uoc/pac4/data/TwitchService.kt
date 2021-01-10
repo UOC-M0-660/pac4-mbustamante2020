@@ -1,6 +1,5 @@
 package edu.uoc.pac4.data
 
-import android.util.Log
 import edu.uoc.pac4.data.network.Endpoints
 import edu.uoc.pac4.data.network.UnauthorizedException
 import edu.uoc.pac4.data.oauth.OAuthConstants
@@ -16,28 +15,27 @@ import io.ktor.client.request.*
  * Created by alex on 24/10/2020.
  */
 
-@Deprecated("Refactor with Repository + DataSources")
+//@Deprecated("Refactor with Repository + DataSources")
 class TwitchApiService(private val httpClient: HttpClient) {
-    private val TAG = "TwitchApiService"
+    //private val TAG = "TwitchApiService"
 
     /// Gets Access and Refresh Tokens on Twitch
     suspend fun getTokens(authorizationCode: String): OAuthTokensResponse? {
         // Get Tokens from Twitch
-        try {
-            val response = httpClient
-                .post<OAuthTokensResponse>(Endpoints.tokenUrl) {
-                    parameter("client_id", OAuthConstants.clientID)
-                    parameter("client_secret", OAuthConstants.clientSecret)
-                    parameter("code", authorizationCode)
-                    parameter("grant_type", "authorization_code")
-                    parameter("redirect_uri", OAuthConstants.redirectUri)
-                }
+        return try {
 
-            return response
+            httpClient
+                    .post<OAuthTokensResponse>(Endpoints.tokenUrl) {
+                        parameter("client_id", OAuthConstants.clientID)
+                        parameter("client_secret", OAuthConstants.clientSecret)
+                        parameter("code", authorizationCode)
+                        parameter("grant_type", "authorization_code")
+                        parameter("redirect_uri", OAuthConstants.redirectUri)
+                    }
 
         } catch (t: Throwable) {
-            Log.w(TAG, "Error Getting Access token", t)
-            return null
+            //Log.w(TAG, "Error Getting Access token", t)
+            null
         }
     }
 
@@ -45,13 +43,12 @@ class TwitchApiService(private val httpClient: HttpClient) {
     @Throws(UnauthorizedException::class)
     suspend fun getStreams(cursor: String? = null): StreamsResponse? {
         try {
-            val response = httpClient
+            return httpClient
                 .get<StreamsResponse>(Endpoints.streamsUrl) {
                     cursor?.let { parameter("after", it) }
                 }
-            return response
         } catch (t: Throwable) {
-            Log.w(TAG, "Error getting streams", t)
+            //Log.w(TAG, "Error getting streams", t)
             // Try to handle error
             return when (t) {
                 is ClientRequestException -> {
@@ -75,7 +72,7 @@ class TwitchApiService(private val httpClient: HttpClient) {
 
             return response.data?.firstOrNull()
         } catch (t: Throwable) {
-            Log.w(TAG, "Error getting user", t)
+            //Log.w(TAG, "Error getting user", t)
             // Try to handle error
             return when (t) {
                 is ClientRequestException -> {
@@ -101,7 +98,7 @@ class TwitchApiService(private val httpClient: HttpClient) {
 
             return response.data?.firstOrNull()
         } catch (t: Throwable) {
-            Log.w(TAG, "Error updating user description", t)
+            //Log.w(TAG, "Error updating user description", t)
             // Try to handle error
             return when (t) {
                 is ClientRequestException -> {

@@ -2,13 +2,10 @@ package edu.uoc.pac4.ui.streams
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import edu.uoc.pac4.R
@@ -17,14 +14,13 @@ import edu.uoc.pac4.ui.login.LoginActivity
 import edu.uoc.pac4.ui.profile.ProfileActivity
 import edu.uoc.pac4.utils.Status
 import edu.uoc.pac4.viewmodel.StreamsViewModel
-import kotlinx.android.synthetic.main.activity_oauth.*
 import kotlinx.android.synthetic.main.activity_streams.*
 import kotlinx.coroutines.launch
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class StreamsActivity : AppCompatActivity() {
 
-    private val TAG = "StreamsActivity"
+    //private val TAG = "StreamsActivity"
 
     private val streamsViewModel: StreamsViewModel by viewModel()
     private val adapter = StreamsAdapter()
@@ -42,16 +38,8 @@ class StreamsActivity : AppCompatActivity() {
         }
         // Get Streams
         getStreams()
-    }
 
-    private fun showLoading() {
-        recyclerView.isEnabled = false
-        progressBar.visibility = View.VISIBLE
-    }
-
-    private fun hideLoading() {
-        recyclerView.isEnabled = true
-        progressBar.visibility = View.GONE
+        observeStreams()
     }
 
     private fun initRecyclerView() {
@@ -78,55 +66,18 @@ class StreamsActivity : AppCompatActivity() {
     private var nextCursor: String? = null
 
     private fun getStreams(cursor: String? = null) {
-        Log.d(TAG, "Requesting streams with cursor $cursor")
-
         // Show Loading
         swipeRefreshLayout.isRefreshing = true
 
         // Get Twitch Streams
         lifecycleScope.launch {
             try {
-                streamsViewModel.getAllStreams(nextCursor)
+                streamsViewModel.getAllStreams(cursor)
 
-                streamsViewModel.streams.observe(this@StreamsActivity, Observer {
-                    when (it.status) {
-                        Status.SUCCESS -> {
-                            Log.d(TAG, "SUCCESS")
-
-                            val streams = it.data?.second.orEmpty()
-                            // Update UI with Streams
-                            if (cursor != null) {
-                                // We are adding more items to the list
-                                adapter.submitList(adapter.currentList.plus(streams))
-                            } else {
-                                // It's the first n items, no pagination yet
-                                adapter.submitList(streams)
-                            }
-                            // Save cursor for next request
-                            nextCursor = it.data?.first
-
-                        }
-                        Status.LOADING -> {
-
-                        }
-                        Status.ERROR -> {
-                            //Handle Error
-                            Log.d(TAG, "Error Access token")
-                            // Show Error message to not leave the page empty
-                            if (adapter.currentList.isNullOrEmpty()) {
-                                Toast.makeText(
-                                    this@StreamsActivity,
-                                    getString(R.string.error_streams), Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    }
-                })
                 // Hide Loading
                 swipeRefreshLayout.isRefreshing = false
 
             } catch (t: UnauthorizedException) {
-                Log.w(TAG, "Unauthorized Error getting streams", t)
                 // Clear local access token
                 streamsViewModel.onUnauthorized()
                 // User was logged out, close screen and open login
@@ -134,6 +85,40 @@ class StreamsActivity : AppCompatActivity() {
                 startActivity(Intent(this@StreamsActivity, LoginActivity::class.java))
             }
         }
+    }
+
+    private fun observeStreams() {
+        streamsViewModel.streams.observe(this@StreamsActivity, {
+            when (it.status) {
+                Status.SUCCESS -> {
+                    val streams = it.data?.second.orEmpty()
+                    // Update UI with Streams
+                    if (it.data?.first != null) {
+                        // We are adding more items to the list
+                        adapter.submitList(adapter.currentList.plus(streams))
+                    } else {
+                        // It's the first n items, no pagination yet
+                        adapter.submitList(streams)
+                    }
+                    // Save cursor for next request
+                    nextCursor = it.data?.first
+
+                }
+                Status.LOADING -> {
+
+                }
+                Status.ERROR -> {
+                    //Handle Error
+                    // Show Error message to not leave the page empty
+                    if (adapter.currentList.isNullOrEmpty()) {
+                        Toast.makeText(
+                            this@StreamsActivity,
+                            getString(R.string.error_streams), Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        })
     }
 
     // region Menu

@@ -22,17 +22,21 @@ class StreamsViewModel(
     suspend fun getAllStreams(cursor: String?) {
         _streams.postValue(Resource.loading(null))
 
-         repository.getStreams(cursor)?.let { streams ->
-             // Success :)
-             _streams.postValue(Resource.success(streams))
+         repository.getStreams(cursor).let { streams ->
 
-         } ?: run {
+             streams.second?.let {
+                 // Success :)
+                 _streams.postValue(Resource.success(streams))
+
+             } ?: run {
              // Failure :(
-             _streams.postValue(Resource.error(R.string.error_streams.toString(), null))
+                _streams.postValue(Resource.error(R.string.error_streams.toString(), null))
+
+            }
          }
     }
 
-    suspend fun onUnauthorized() {
+    fun onUnauthorized() {
         authenticationRepository.onUnauthorized()
     }
 }

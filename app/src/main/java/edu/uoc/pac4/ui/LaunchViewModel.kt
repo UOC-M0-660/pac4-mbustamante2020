@@ -20,7 +20,6 @@ class LaunchViewModel(
     // Live Data
     val isUserAvailable = MutableLiveData<Boolean>()
 
-
     // Public function that can be called from the view (Activity)
     fun getUserAvailability() {
         // Get Availability from Repository and post result
