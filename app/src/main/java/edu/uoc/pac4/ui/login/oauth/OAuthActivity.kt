@@ -1,5 +1,6 @@
 package edu.uoc.pac4.ui.login.oauth
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -9,16 +10,21 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import edu.uoc.pac4.R
 import edu.uoc.pac4.data.network.Endpoints
 import edu.uoc.pac4.data.oauth.OAuthConstants
+import edu.uoc.pac4.ui.LaunchActivity
+import edu.uoc.pac4.utils.Status
 import edu.uoc.pac4.viewmodel.OAuthViewModel
 import kotlinx.android.synthetic.main.activity_oauth.*
+import kotlinx.coroutines.launch
 import org.koin.android.viewmodel.ext.android.viewModel
 
 class OAuthActivity : AppCompatActivity() {
 
-    private val TAG = "StreamsActivity"
+    private val TAG = "OAuthActivity"
     private val oAuthViewModel: OAuthViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,79 +91,40 @@ class OAuthActivity : AppCompatActivity() {
     // on the WebView to obtain the tokens
     private fun onAuthorizationCodeRetrieved(authorizationCode: String) {
         // Show Loading Indicator
-        Log.d(TAG, "onAuthorizationCodeRetrieved")
         progressBar.visibility = View.VISIBLE
-
-        oAuthViewModel.getOAuthTokens(authorizationCode)
-        Log.d(TAG, "oAuthViewModel.getOAuthTokens(authorizationCode)")
-
-        oAuthViewModel.response.observe(this) {response ->
-
-            Log.d(TAG, "Got response $response")
-
-           /* if(response!!) {
-                Log.d(TAG, "Got Access token")
-            } else {
-                Log.d(TAG, "Error Access token")
-                // Show Error Message
-                Toast.makeText(
-                        this@OAuthActivity,
-                        getString(R.string.error_oauth),
-                        Toast.LENGTH_LONG
-                ).show()
-                // Restart Activity
-                finish()
-                startActivity(Intent(this@OAuthActivity, OAuthActivity::class.java))
-            }
-
-            // Hide Loading Indicator
-            progressBar.visibility = View.GONE
-            Log.d(TAG, " startActivity(Intent(")
-            // Restart app to navigate to StreamsActivity
-            startActivity(Intent(this@OAuthActivity, LaunchActivity::class.java))
-            finish()*/
-        }
-    }
-
-        /*
-        // Create Twitch Service
-        val service = TwitchApiService(Network.createHttpClient(this))
-        // Launch new thread attached to this Activity.
-        // If the Activity is closed, this Thread will be cancelled
         lifecycleScope.launch {
 
-            // Launch get Tokens Request
-            service.getTokens(authorizationCode)?.let { response ->
-                // Success :)
+            oAuthViewModel.getOAuthTokens(authorizationCode)
+            oAuthViewModel.oauthTokens.observe(this@OAuthActivity, Observer {
+                when (it.status) {
+                    Status.SUCCESS -> {
+                        Log.d(TAG, "SUCCESS")
 
-                Log.d(TAG, "Got Access token ${response.accessToken}")
+                        // Hide Loading Indicator
+                        progressBar.visibility = View.GONE
 
-                // Save access token and refresh token using the SessionManager class
-                val sessionManager = SessionManager(this@OAuthActivity)
-                sessionManager.saveAccessToken(response.accessToken)
-                response.refreshToken?.let {
-                    sessionManager.saveRefreshToken(it)
+                        // Restart app to navigate to StreamsActivity
+                        startActivity(Intent(this@OAuthActivity, LaunchActivity::class.java))
+                        finish()
+                    }
+                    Status.LOADING -> {
+
+                    }
+                    Status.ERROR -> {
+                        //Handle Error
+                        Log.d(TAG, "Error Access token")
+                        // Show Error Message
+                        Toast.makeText(
+                                this@OAuthActivity,
+                                getString(R.string.error_oauth),
+                                Toast.LENGTH_LONG
+                        ).show()
+                        // Restart Activity
+                        finish()
+                        startActivity(Intent(this@OAuthActivity, OAuthActivity::class.java))
+                    }
                 }
-            } ?: run {
-                // Failure :(
-
-                // Show Error Message
-                Toast.makeText(
-                    this@OAuthActivity,
-                    getString(R.string.error_oauth),
-                    Toast.LENGTH_LONG
-                ).show()
-                // Restart Activity
-                finish()
-                startActivity(Intent(this@OAuthActivity, OAuthActivity::class.java))
-            }
-
-            // Hide Loading Indicator
-            progressBar.visibility = View.GONE
-
-            // Restart app to navigate to StreamsActivity
-            startActivity(Intent(this@OAuthActivity, LaunchActivity::class.java))
-            finish()
+            })
         }
-    }*/
+    }
 }
